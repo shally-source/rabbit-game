@@ -22,13 +22,19 @@
   .modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     display: flex; justify-content: center; align-items: center; z-index: 1000;
+    animation: fadeIn 0.2s ease;
   }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
   .modal-card {
-    background: #fff; width: 92%; max-width: 420px; border-radius: 20px;
-    padding: 24px; text-align: center; border: 4px solid #ffb74d;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    background: #fff; width: 92%; max-width: 420px; border-radius: 24px;
+    padding: 28px 24px; text-align: center; border: 5px solid #ffb74d;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  .modal-card h2 { margin-top: 0; color: #d84315; font-size: 26px; }
+  @keyframes popUp { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  .modal-card h2 { margin-top: 0; color: #d84315; font-size: 28px; }
   .input-group { margin-bottom: 14px; text-align: left; }
   .input-group label { display: block; font-weight: bold; margin-bottom: 4px; color: #555; }
   .input-group input {
@@ -36,9 +42,9 @@
     border: 2px solid #ccc; border-radius: 10px;
   }
   .btn {
-    padding: 10px 20px; font-size: 17px; font-weight: bold; border: none;
-    border-radius: 12px; cursor: pointer; color: #fff;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: transform 0.1s;
+    padding: 12px 24px; font-size: 18px; font-weight: bold; border: none;
+    border-radius: 14px; cursor: pointer; color: #fff;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.2); transition: transform 0.1s;
   }
   .btn:active { transform: translateY(3px); box-shadow: none; }
   .btn:disabled { background: #bbb !important; box-shadow: none; cursor: not-allowed; }
@@ -146,6 +152,12 @@
   table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
   th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
   th { background: #ffe082; color: #5d4037; }
+
+  /* 自訂彩色提示彈窗樣式 */
+  #custom-alert-modal .modal-card {
+    border-color: #42a5f5;
+    background: #e3f2fd;
+  }
 </style>
 </head>
 <body>
@@ -168,7 +180,16 @@
   </div>
 </div>
 
-<!-- 2. 遊戲主畫面 -->
+<!-- 2. 自訂彩色提示彈窗 -->
+<div id="custom-alert-modal" class="modal" style="display:none;">
+  <div class="modal-card">
+    <div id="custom-alert-icon" style="font-size: 48px; margin-bottom: 8px;">🎉</div>
+    <div id="custom-alert-msg" style="font-size: 20px; font-weight: bold; color: #0d47a1; margin-bottom: 20px; line-height: 1.4;">提示訊息</div>
+    <button class="btn btn-blue" style="width: 100%;" onclick="closeCustomAlert()">確定</button>
+  </div>
+</div>
+
+<!-- 3. 遊戲主畫面 -->
 <div id="app" style="display:none;">
   <header>
     <div class="title-badge">小兔子向前衝</div>
@@ -224,7 +245,7 @@
   </div>
 </div>
 
-<!-- 3. 選關視窗 -->
+<!-- 4. 選關視窗 -->
 <div id="levels-modal" class="modal" style="display:none;">
   <div class="modal-card" style="max-width:480px;">
     <h2>🗺️ 選擇關卡</h2>
@@ -236,7 +257,7 @@
   </div>
 </div>
 
-<!-- 4. 排行榜視窗 -->
+<!-- 5. 排行榜視窗 -->
 <div id="rank-modal" class="modal" style="display:none;">
   <div class="modal-card" style="max-width:520px;">
     <h2>🏆 全班闖關排行榜</h2>
@@ -255,13 +276,11 @@
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz_5Jc-0m1hcKtDKUt_VPXFCZlBMimzH_HqgnOdxd-sIlb92Ba_DU3uB9b64akKbkmFuQ/exec";
 
-// 離線備用學生名單（若網路或GAS連線失敗，可直接用此帳號登入測試）
 const BACKUP_USERS = [
   { account: "test", password: "1234", cls: "測試班", name: "測試小勇士", completedLevels: 0, totalTime: 0 },
   { account: "2A01", password: "1234", cls: "2A", name: "1號同學", completedLevels: 0, totalTime: 0 }
 ];
 
-// 20 關題庫座標（已修正第6、14關及確保全關卡通暢）
 const LEVELS = [
   { level: 1, start: {x:2, y:3, dir:0}, target: {x:2, y:1}, obstacles: [{x:1, y:2}, {x:3, y:2}] },
   { level: 2, start: {x:1, y:3, dir:0}, target: {x:3, y:1}, obstacles: [{x:1, y:0}, {x:2, y:2}] },
@@ -291,6 +310,23 @@ let commands = [];
 let playerState = { x: 0, y: 0, dir: 0 };
 let isRunning = false;
 let timerInterval = null;
+let alertCallback = null;
+
+// 自訂漂亮的彈窗函數
+function showCustomAlert(msg, icon = "🎉", callback = null) {
+  document.getElementById('custom-alert-msg').innerText = msg;
+  document.getElementById('custom-alert-icon').innerText = icon;
+  document.getElementById('custom-alert-modal').style.display = 'flex';
+  alertCallback = callback;
+}
+
+function closeCustomAlert() {
+  document.getElementById('custom-alert-modal').style.display = 'none';
+  if (typeof alertCallback === 'function') {
+    alertCallback();
+    alertCallback = null;
+  }
+}
 
 async function handleLogin() {
   const acc = document.getElementById('login-user').value.trim();
@@ -325,7 +361,6 @@ async function handleLogin() {
     }
   } catch (err) {
     console.warn("雲端連線失敗，啟動備用離線驗證", err);
-    // 離線備用降級驗證
     const backup = BACKUP_USERS.find(u => u.account.toLowerCase() === acc.toLowerCase() && u.password === pwd);
     if (backup) {
       initGameSession(backup);
@@ -473,7 +508,7 @@ async function runProgram() {
   updatePlayerView();
   await new Promise(r => setTimeout(r, 300));
 
-  let crashed = false;
+  let crashReason = null;
   for (let i = 0; i < commands.length; i++) {
     document.querySelectorAll('.slot-item').forEach(el => el.classList.remove('active'));
     const stepEl = document.getElementById(`cmd-step-${i}`);
@@ -495,18 +530,16 @@ async function runProgram() {
     await new Promise(r => setTimeout(r, 520));
 
     if (playerState.x < 0 || playerState.x >= 5 || playerState.y < 0 || playerState.y >= 4) {
-      alert('💥 哎呀！小兔子超出棋盤邊界了！');
-      crashed = true; break;
+      crashReason = 'boundary'; break;
     }
     if (lvl.obstacles.some(o => o.x === playerState.x && o.y === playerState.y)) {
-      alert('💥 哎呀！撞到紅色障礙物了！');
-      crashed = true; break;
+      crashReason = 'obstacle'; break;
     }
   }
 
   document.querySelectorAll('.slot-item').forEach(el => el.classList.remove('active'));
 
-  if (!crashed && playerState.x === lvl.target.x && playerState.y === lvl.target.y) {
+  if (!crashReason && playerState.x === lvl.target.x && playerState.y === lvl.target.y) {
     if (currentLevelIdx + 1 > currentUser.completedLevels) {
       currentUser.completedLevels = currentLevelIdx + 1;
       fetch(GAS_URL, {
@@ -520,19 +553,28 @@ async function runProgram() {
       }).catch(e => console.warn(e));
     }
     if (currentLevelIdx + 1 < LEVELS.length) {
-      alert(`🎉 挑戰成功！進入第 ${currentLevelIdx + 2} 關！`);
-      loadLevel(currentLevelIdx + 1);
+      showCustomAlert(`挑戰成功！進入第 ${currentLevelIdx + 2} 關！`, "🎉", () => {
+        loadLevel(currentLevelIdx + 1);
+      });
     } else {
-      alert(`🏆 太棒了！已全部通關！總共耗時 ${currentUser.totalTime} 秒！`);
-      openRankModal();
+      showCustomAlert(`太棒了！已全部通關！總共耗時 ${currentUser.totalTime} 秒！`, "🏆", () => {
+        openRankModal();
+      });
     }
-  } else if (!crashed) {
-    alert('🤔 還沒走到紅旗終點喔，再試一次！');
-    playerState = { ...lvl.start };
-    updatePlayerView();
   } else {
-    playerState = { ...lvl.start };
-    updatePlayerView();
+    let msg = '還沒走到紅旗終點喔，再試一次！';
+    let icon = '🤔';
+    if (crashReason === 'boundary') {
+      msg = '哎呀！小兔子超出棋盤邊界了！';
+      icon = '💥';
+    } else if (crashReason === 'obstacle') {
+      msg = '哎呀！撞到紅色障礙物了！';
+      icon = '💥';
+    }
+    showCustomAlert(msg, icon, () => {
+      playerState = { ...lvl.start };
+      updatePlayerView();
+    });
   }
 
   isRunning = false;
