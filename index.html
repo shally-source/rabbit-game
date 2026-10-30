@@ -59,17 +59,20 @@
     padding: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
   }
   header {
-    display: flex; flex-wrap: wrap; justify-content: space-between;
-    align-items: center; gap: 8px; padding-bottom: 12px;
-    border-bottom: 3px dashed #ffd54f; margin-bottom: 14px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 16px; border-bottom: 3px dashed #ffd54f; margin-bottom: 16px; gap: 12px;
+  }
+  .header-right {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
   }
   .title-badge {
-    font-size: 22px; font-weight: 900; color: #d84315;
-    background: #ffe082; padding: 6px 12px; border-radius: 14px;
-    border: 3px solid #ffa000;
+    font-size: 28px; font-weight: 900; color: #d84315;
+    background: #ffe082; padding: 8px 16px; border-radius: 16px;
+    border: 4px solid #ffa000; box-shadow: 0 4px 0 #ffa000;
+    letter-spacing: 1px;
   }
-  .status-bar { display: flex; gap: 8px; align-items: center; font-weight: bold; font-size: 14px; flex-wrap: wrap; }
-  .pill { background: #fff; padding: 5px 10px; border-radius: 20px; border: 2px solid #ffb74d; }
+  .status-bar { display: flex; gap: 8px; align-items: center; font-weight: bold; font-size: 15px; flex-wrap: wrap; }
+  .pill { background: #fff; padding: 6px 12px; border-radius: 20px; border: 2px solid #ffb74d; }
 
   .main-area { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
   @media (max-width: 680px) { .main-area { grid-template-columns: 1fr; } }
@@ -169,11 +172,11 @@
     <p style="color:#666; font-size:14px; margin-top:-8px;">請輸入帳號與密碼開始闖關</p>
     <div class="input-group">
       <label>👤 帳號 (學號)</label>
-      <input type="text" id="login-user" placeholder="請輸入學號或帳號" value="">
+      <input type="text" id="login-user" placeholder="請輸入學號或帳號" value="" autocomplete="off">
     </div>
     <div class="input-group">
       <label>🔑 登入密碼</label>
-      <input type="password" id="login-pass" placeholder="請輸入密碼" value="">
+      <input type="password" id="login-pass" placeholder="請輸入密碼" value="" autocomplete="new-password">
     </div>
     <div id="login-msg" style="font-size:14px; min-height:22px; margin-bottom:8px; font-weight:bold;"></div>
     <button class="btn btn-green" id="login-btn" style="width:100%;" onclick="handleLogin()">🚀 登入並開始遊戲</button>
@@ -204,17 +207,19 @@
 <!-- 4. 遊戲主畫面 -->
 <div id="app" style="display:none;">
   <header>
-    <div class="title-badge">小兔子向前衝</div>
-    <div class="status-bar">
-      <span class="pill" id="student-badge">👤 載入中</span>
-      <span class="pill">🚩 第 <span id="lvl-num">1</span> / 20 關</span>
-      <span class="pill">⏱️ <span id="timer-num">0</span> 秒</span>
-    </div>
-    <div style="display:flex; gap:5px; flex-wrap:wrap;">
-      <button class="btn btn-orange" style="padding:5px 10px; font-size:13px;" onclick="openLevelsModal()">🗺️ 選關</button>
-      <button class="btn btn-blue" style="padding:5px 10px; font-size:13px;" onclick="openRankModal()">🏆 排行榜</button>
-      <button class="btn btn-red" style="padding:5px 10px; font-size:13px;" onclick="confirmResetProgress()">🔄 重設</button>
-      <button class="btn" style="padding:5px 10px; font-size:13px; background:#78909c;" onclick="handleLogout()">🚪 登出</button>
+    <div class="title-badge" style="margin-top: 4px;">🐰 小兔子向前衝</div>
+    <div class="header-right">
+      <div class="status-bar" style="justify-content: flex-end;">
+        <span class="pill" id="student-badge">👤 載入中</span>
+        <span class="pill">🚩 第 <span id="lvl-num">1</span> / 20 關</span>
+        <span class="pill">⏱️ <span id="timer-num">0</span> 秒</span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content: flex-end;">
+        <button class="btn btn-orange" style="padding:8px 12px; font-size:14px;" onclick="openLevelsModal()">🗺️ 選關</button>
+        <button class="btn btn-blue" style="padding:8px 12px; font-size:14px;" onclick="openRankModal()">🏆 排行榜</button>
+        <button class="btn btn-red" style="padding:8px 12px; font-size:14px;" onclick="confirmResetProgress()">🔄 重設</button>
+        <button class="btn" style="padding:8px 12px; font-size:14px; background:#78909c;" onclick="handleLogout()">🚪 登出</button>
+      </div>
     </div>
   </header>
 
